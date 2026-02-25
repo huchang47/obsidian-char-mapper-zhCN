@@ -35,7 +35,8 @@ jobs:
       
     - name: Create ZIP archive
       run: |
-        Compress-Archive -Path ./publish/* -DestinationPath ./TekkenInputMethod.zip
+        # Exclude .pdb files (debug symbols) to reduce size
+        Get-ChildItem -Path ./publish -Exclude *.pdb | Compress-Archive -DestinationPath ./TekkenInputMethod.zip
         
     - name: Upload artifact
       uses: actions/upload-artifact@v4
