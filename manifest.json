@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-char-mapper",
+	"name": "Character Mapper",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "快速字符映射 - 激活后按键自动转换为自定义字符",
+	"author": "sh2288",
+	"authorUrl": "https://github.com/sh2288",
+	"isDesktopOnly": false
+}

@@ -1,0 +1,13 @@
+/* Character Mapper Plugin Styles */
+
+.char-mapper-setting {
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.char-mapper-notice {
+    font-size: 14px;
+    padding: 10px;
+}
