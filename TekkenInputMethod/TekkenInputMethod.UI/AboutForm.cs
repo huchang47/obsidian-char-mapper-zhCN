@@ -29,9 +29,10 @@ namespace TekkenInputMethod.UI
             };
             
             // 创建版本标签
+            var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             var versionLabel = new Label
             {
-                Text = "版本 1.0.0",
+                Text = $"版本 {version?.ToString(3) ?? "1.0.1"}",
                 Location = new System.Drawing.Point(20, 60),
                 AutoSize = true
             };

@@ -11,7 +11,7 @@ namespace TekkenInputMethod.App
     {
         private KeyboardHook keyboardHook;
         private InputMapper inputMapper;
-        private ConfigManager configManager;
+        private ProfileManager profileManager;
         private NotifyIcon trayIcon;
         private Icon appIcon;
         private HotkeyManager hotkeyManager;
@@ -23,7 +23,7 @@ namespace TekkenInputMethod.App
             LoadApplicationIcon();
             InitializeComponents();
             InitializeKeyboardHook();
-            InitializeConfig();
+            InitializeProfileManager();
             InitializeHotkeys();
             InitializeTrayIcon();
             Logger.Info("应用程序初始化完成");
@@ -78,15 +78,26 @@ namespace TekkenInputMethod.App
             // 创建控件
             var statusLabel = new Label
             {
+                Name = "statusLabel",
                 Text = "状态: 未激活",
                 Location = new System.Drawing.Point(20, 20),
                 AutoSize = true
             };
             
+            var profileLabel = new Label
+            {
+                Name = "profileLabel",
+                Text = "当前配置: 铁拳配置",
+                Location = new System.Drawing.Point(20, 45),
+                AutoSize = true,
+                Font = new System.Drawing.Font("Microsoft YaHei", 8, System.Drawing.FontStyle.Italic),
+                ForeColor = Color.DarkBlue
+            };
+            
             var activateButton = new Button
             {
                 Text = "激活输入法",
-                Location = new System.Drawing.Point(20, 50),
+                Location = new System.Drawing.Point(20, 70),
                 Size = new System.Drawing.Size(120, 30)
             };
             activateButton.Click += ActivateButton_Click;
@@ -94,7 +105,7 @@ namespace TekkenInputMethod.App
             var configButton = new Button
             {
                 Text = "配置",
-                Location = new System.Drawing.Point(150, 50),
+                Location = new System.Drawing.Point(150, 70),
                 Size = new System.Drawing.Size(100, 30)
             };
             configButton.Click += ConfigButton_Click;
@@ -102,7 +113,7 @@ namespace TekkenInputMethod.App
             var aboutButton = new Button
             {
                 Text = "关于",
-                Location = new System.Drawing.Point(20, 90),
+                Location = new System.Drawing.Point(20, 110),
                 Size = new System.Drawing.Size(100, 30)
             };
             aboutButton.Click += AboutButton_Click;
@@ -110,12 +121,13 @@ namespace TekkenInputMethod.App
             var exitButton = new Button
             {
                 Text = "退出",
-                Location = new System.Drawing.Point(150, 90),
+                Location = new System.Drawing.Point(150, 110),
                 Size = new System.Drawing.Size(100, 30)
             };
             exitButton.Click += ExitButton_Click;
             
             this.Controls.Add(statusLabel);
+            this.Controls.Add(profileLabel);
             this.Controls.Add(activateButton);
             this.Controls.Add(configButton);
             this.Controls.Add(aboutButton);
@@ -129,13 +141,25 @@ namespace TekkenInputMethod.App
             keyboardHook.HookKeyboard();
         }
         
-        private void InitializeConfig()
+        private void InitializeProfileManager()
         {
-            configManager = new ConfigManager();
+            profileManager = new ProfileManager();
             inputMapper = new InputMapper();
             
-            var config = configManager.LoadConfig();
-            inputMapper.LoadMappings(config.Mappings);
+            var activeProfile = profileManager.GetActiveProfile();
+            inputMapper.LoadMappings(activeProfile.Mappings);
+            
+            UpdateProfileLabel();
+        }
+        
+        private void UpdateProfileLabel()
+        {
+            var profileLabel = this.Controls.Find("profileLabel", true).FirstOrDefault() as Label;
+            if (profileLabel != null)
+            {
+                var activeProfile = profileManager.GetActiveProfile();
+                profileLabel.Text = $"当前配置: {activeProfile.Name}";
+            }
         }
         
         private void InitializeHotkeys()
@@ -145,17 +169,17 @@ namespace TekkenInputMethod.App
                 hotkeyManager = new HotkeyManager(this.Handle);
                 hotkeyManager.HotkeyPressed += HotkeyManager_HotkeyPressed;
                 
-                var config = configManager.LoadConfig();
+                var activeProfile = profileManager.GetActiveProfile();
                 
-                if (!string.IsNullOrEmpty(config.Hotkeys.Activate))
+                if (!string.IsNullOrEmpty(activeProfile.Hotkeys.Activate))
                 {
-                    if (hotkeyManager.RegisterHotkey(config.Hotkeys.Activate, HOTKEY_ACTIVATE))
+                    if (hotkeyManager.RegisterHotkey(activeProfile.Hotkeys.Activate, HOTKEY_ACTIVATE))
                     {
-                        Logger.Info($"热键注册成功: {config.Hotkeys.Activate}");
+                        Logger.Info($"热键注册成功: {activeProfile.Hotkeys.Activate}");
                     }
                     else
                     {
-                        Logger.Warning($"热键注册失败: {config.Hotkeys.Activate}");
+                        Logger.Warning($"热键注册失败: {activeProfile.Hotkeys.Activate}");
                     }
                 }
             }
@@ -246,7 +270,7 @@ namespace TekkenInputMethod.App
             string status = inputMapper.IsActive ? "已激活" : "未激活";
             foreach (Control control in this.Controls)
             {
-                if (control is Label label && label.Text.StartsWith("状态:"))
+                if (control is Label label && label.Name == "statusLabel")
                 {
                     label.Text = $"状态: {status}";
                     break;
@@ -259,6 +283,13 @@ namespace TekkenInputMethod.App
         private void KeyboardHook_KeyPressed(object sender, KeyPressedEventArgs e)
         {
             string keyString = e.Key.ToString();
+            
+            // 处理数字键：D0-D9 转换为 0-9
+            if (keyString.StartsWith("D") && keyString.Length == 2 && char.IsDigit(keyString[1]))
+            {
+                keyString = keyString.Substring(1);
+            }
+            
             if (keyString == "Space")
                 keyString = " ";
             
@@ -313,8 +344,25 @@ namespace TekkenInputMethod.App
         {
             try
             {
-                var configForm = new TekkenInputMethod.UI.ConfigForm();
+                // 将 MainForm 的 ProfileManager 传递给 ConfigForm
+                var configForm = new TekkenInputMethod.UI.ConfigForm(profileManager);
                 configForm.ShowDialog();
+                
+                // 无论用户如何关闭配置窗口，都重新加载当前配置
+                var activeProfile = profileManager.GetActiveProfile();
+                inputMapper.LoadMappings(activeProfile.Mappings);
+                UpdateProfileLabel();
+                
+                // 重新注册热键
+                hotkeyManager.UnregisterHotkey(HOTKEY_ACTIVATE);
+                if (!string.IsNullOrEmpty(activeProfile.Hotkeys.Activate))
+                {
+                    if (hotkeyManager.RegisterHotkey(activeProfile.Hotkeys.Activate, HOTKEY_ACTIVATE))
+                    {
+                        Logger.Info($"热键重新注册成功: {activeProfile.Hotkeys.Activate}");
+                    }
+                }
+                
                 Logger.Info("配置界面关闭");
             }
             catch (Exception ex)
@@ -349,17 +397,12 @@ namespace TekkenInputMethod.App
             base.OnFormClosing(e);
         }
         
-        protected override void Dispose(bool disposing)
+        protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            if (disposing)
-            {
-                Logger.Info("应用程序关闭，释放资源");
-                keyboardHook?.UnhookKeyboard();
-                hotkeyManager?.Dispose();
-                trayIcon?.Dispose();
-                Logger.Info("应用程序已关闭");
-            }
-            base.Dispose(disposing);
+            keyboardHook?.UnhookKeyboard();
+            hotkeyManager?.UnregisterHotkey(HOTKEY_ACTIVATE);
+            trayIcon?.Dispose();
+            base.OnFormClosed(e);
         }
     }
 }
