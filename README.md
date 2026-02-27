@@ -17,10 +17,11 @@ Tekken Input Method is a system-level input tool for Windows designed specifical
 ### Key Features
 
 - **System-wide Input**: Works in any application (QQ, WeChat, Notepad, browsers, etc.)
-- **Dual Mode Design**: Tekken mode for gaming, Arrow mode for daily use
+- **Profile Management**: Support multiple profiles, each with independent key mappings
 - **Case Sensitive**: Supports Shift+direction keys for sidestep symbols (⇈/⇊)
 - **Hotkey Toggle**: Default F8 to quickly enable/disable without affecting normal typing
 - **Highly Customizable**: Customize all key mappings to create your own input scheme
+- **Import/Export**: Export and import profiles as JSON files for easy sharing and backup
 
 ---
 
@@ -38,7 +39,7 @@ Tekken Input Method is a system-level input tool for Windows designed specifical
 
 ### 3. Input Mappings
 
-#### Tekken Mode (Default):
+#### Tekken Profile (Default):
 
 | Key | Output | Description |
 |-----|--------|-------------|
@@ -66,42 +67,59 @@ Tekken Input Method is a system-level input tool for Windows designed specifical
 | T | Ⓣ | T Function |
 | B | Ⓑ | B Function |
 
-#### Arrow Keys Mode (Simple Mode):
+#### Arrow Keys Profile (Simple Mode):
 
 | Key | Output | Description |
 |------|------|------|
-| W | ⬆ | Up |
-| A | ⬅ | Left |
-| S | ⬇ | Down |
-| D | ➡ | Right |
+| W | ↑ | Up |
+| A | ← | Left |
+| S | ↓ | Down |
+| D | → | Right |
 | Q | ↖ | Up-Left Diagonal |
 | E | ↗ | Up-Right Diagonal |
 | Z | ↙ | Down-Left Diagonal |
 | C | ↘ | Down-Right Diagonal |
 
-### 4. Mode Differences
+### 4. Profile Differences
 
-**Tekken Mode**:
+**Tekken Profile**:
 - Designed specifically for Tekken games
 - Includes complete directional and button mappings
 - Features combo buttons, special symbols, and more
 - Supports case sensitivity (Shift+direction for sidestep symbols)
 - Ideal for recording game moves and combos
 
-**Arrow Keys Mode**:
+**Arrow Keys Profile**:
 - Simple directional key mapping
 - Only includes basic directions and diagonals
 - Suitable for general arrow input needs
 - Cleaner interface
 
-### 5. Configuration
-- Click the "Config" button to open the configuration window
-- **Key Mappings Tab**: Customize key mappings with case sensitivity support (e.g., `w` and `W` can map to different symbols)
-- **Preset Modes Tab**:
-  - View detailed mode descriptions
-  - One-click switch between Tekken mode and Arrow mode
-  - Restore default settings
-- **System Settings Tab**: Configure startup with Windows, customize hotkey, etc.
+### 5. Profile Management
+
+#### Profile Management Tab
+- **Profile List**: Display all saved profiles
+- **Switch to this Profile**: Switch to the selected profile
+- **New Profile**: Create a new custom profile
+- **Duplicate Profile**: Copy the selected profile as a new one
+- **Delete Profile**: Delete the selected profile (cannot delete the last one)
+- **Edit Profile**: Jump to the Key Mappings tab to edit the selected profile
+- **Import Profile**: Import a profile from a JSON file
+- **Export Profile**: Export the selected profile as a JSON file
+
+#### Key Mappings Tab
+- Display the key mapping table of the current profile
+- **Add**: Add a new key mapping
+- **Remove**: Remove the selected key mapping (click any cell in the row, then click Remove)
+- **Save**: Save changes to the current profile
+- **Cancel**: Discard changes and close the configuration window
+- Supports case sensitivity (e.g., `w` and `W` can map to different symbols)
+- Supports number key mapping (e.g., `8` can map to `↑`)
+
+#### System Settings Tab
+- **Run on Startup**: Configure whether to start with Windows
+- **Start Minimized**: Configure whether to minimize to tray on startup
+- **Activation Hotkey**: Set the hotkey to enable/disable the input method
 
 ### 6. System Tray Functions
 - Right-click the tray icon
@@ -139,11 +157,13 @@ Tekken Input Method is a system-level input tool for Windows designed specifical
 
 ---
 
-## ⚙️ Configuration File
+## ⚙️ Configuration Files
 
-Configuration file location: `%APPDATA%\TekkenInputMethod\config.json`
+Configuration files are saved in: `%APPDATA%\TekkenInputMethod\Profiles\`
 
-You can manually edit this file to customize mapping relationships.
+- Each profile is an independent JSON file (`{ProfileID}.json`)
+- `settings.json` saves the current active profile ID and system settings
+- You can manually backup and copy configuration files
 
 ---
 
@@ -151,16 +171,16 @@ You can manually edit this file to customize mapping relationships.
 
 1. Close the input method program
 2. Delete the configuration directory `%APPDATA%\TekkenInputMethod`
-3. To remove startup with Windows, uncheck "Startup with Windows" in the configuration
+3. If you need to remove startup with Windows, please uncheck "Run on Startup" in the configuration
 
 ---
 
-## 🆘 Technical Support
+## 📄 License
 
-If you encounter issues, please check the log files.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## ⚠️ Known Limitations
+## 🙏 Acknowledgments
 
-- Diagonal symbols (↖↗↙↘) in QQ may be escaped in certain situations. This is caused by QQ's rich text processing mechanism. The input method uses standard Unicode characters, but the display processing on the application side is beyond the input method's control.
+Thanks to all Tekken players who contributed ideas and feedback for this tool!
